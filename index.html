@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maple Electronics — Power Garden Tools</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green: #2d6a2d;
+      --green-light: #4a9e3f;
+      --green-neon: #7edb5a;
+      --black: #0d0f0c;
+      --dark: #131a11;
+      --mid: #1e2b1a;
+      --gray: #8a9e84;
+      --white: #f0f5ee;
+      --orange: #e8651a;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Noto Sans SC', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: 0.6;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 4rem;
+      background: rgba(13,15,12,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(126,219,90,0.12);
+    }
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 0.1em;
+      color: var(--green-neon);
+      text-decoration: none;
+    }
+    .logo span { color: var(--orange); }
+    nav ul { list-style: none; display: flex; gap: 2.5rem; }
+    nav a {
+      color: var(--gray); text-decoration: none; font-size: 0.85rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--green-neon); }
+    .nav-cta {
+      background: var(--green-neon); color: var(--black) !important;
+      padding: 0.5rem 1.2rem; font-weight: 700 !important;
+    }
+    .nav-cta:hover { background: var(--orange); color: var(--white) !important; }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      display: grid; grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 8rem 4rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 70% 50%, rgba(74,158,63,0.12) 0%, transparent 70%),
+                  radial-gradient(ellipse 40% 40% at 20% 80%, rgba(232,101,26,0.06) 0%, transparent 60%);
+    }
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(126,219,90,0.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(126,219,90,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .hero-content { position: relative; z-index: 1; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      border: 1px solid var(--green-neon); color: var(--green-neon);
+      font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase;
+      padding: 0.35rem 0.9rem; margin-bottom: 2rem;
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero-badge::before { content: '●'; font-size: 0.5rem; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .hero h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 7vw, 7rem);
+      line-height: 0.92;
+      letter-spacing: 0.02em;
+      animation: fadeUp 0.7s 0.1s ease both;
+    }
+    .hero h1 em { color: var(--green-neon); font-style: normal; }
+    .hero h1 .accent { color: var(--orange); }
+
+    .hero-sub {
+      margin-top: 1.8rem;
+      font-size: 1rem; color: var(--gray); line-height: 1.7;
+      max-width: 420px;
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+    .hero-actions {
+      display: flex; gap: 1rem; margin-top: 2.5rem;
+      animation: fadeUp 0.7s 0.3s ease both;
+    }
+    .btn-primary {
+      background: var(--green-neon); color: var(--black);
+      padding: 0.85rem 2.2rem; font-weight: 700; font-size: 0.9rem;
+      letter-spacing: 0.05em; text-decoration: none;
+      border: none; cursor: pointer;
+      transition: transform 0.2s, background 0.2s;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    }
+    .btn-primary:hover { background: var(--orange); transform: translateY(-2px); }
+    .btn-ghost {
+      border: 1px solid var(--gray); color: var(--white);
+      padding: 0.85rem 2.2rem; font-size: 0.9rem;
+      letter-spacing: 0.05em; text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    }
+    .btn-ghost:hover { border-color: var(--green-neon); color: var(--green-neon); }
+
+    .hero-stats {
+      display: flex; gap: 3rem; margin-top: 3.5rem;
+      animation: fadeUp 0.7s 0.4s ease both;
+    }
+    .stat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem; color: var(--green-neon); line-height: 1;
+    }
+    .stat-label { font-size: 0.75rem; color: var(--gray); margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    /* Hero Visual */
+    .hero-visual {
+      position: relative; z-index: 1;
+      display: flex; justify-content: center; align-items: center;
+    }
+    .hero-circle {
+      width: 480px; height: 480px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, var(--mid) 0%, var(--dark) 70%);
+      border: 1px solid rgba(126,219,90,0.2);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+    .hero-circle::before {
+      content: '';
+      position: absolute; inset: -20px;
+      border-radius: 50%;
+      border: 1px dashed rgba(126,219,90,0.15);
+      animation: spin 30s linear infinite;
+    }
+    .hero-circle::after {
+      content: '';
+      position: absolute; inset: -40px;
+      border-radius: 50%;
+      border: 1px dashed rgba(126,219,90,0.07);
+      animation: spin 50s linear infinite reverse;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .tool-icon {
+      font-size: 9rem; filter: drop-shadow(0 0 30px rgba(126,219,90,0.4));
+      animation: float 4s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+    .hero-tag {
+      position: absolute;
+      background: var(--mid);
+      border: 1px solid rgba(126,219,90,0.25);
+      padding: 0.7rem 1rem;
+      font-size: 0.78rem;
+    }
+    .hero-tag.t1 { top: 60px; right: -20px; }
+    .hero-tag.t2 { bottom: 80px; left: -30px; }
+    .hero-tag-title { color: var(--gray); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; }
+    .hero-tag-val { color: var(--green-neon); font-weight: 700; margin-top: 0.2rem; font-size: 0.9rem; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── MARQUEE ─── */
+    .marquee-bar {
+      background: var(--green-neon); color: var(--black);
+      padding: 0.7rem 0; overflow: hidden;
+      display: flex;
+    }
+    .marquee-track {
+      display: flex; gap: 3rem; white-space: nowrap;
+      animation: marquee 20s linear infinite;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem; letter-spacing: 0.1em;
+    }
+    @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+    .marquee-track span { opacity: 0.5; }
+
+    /* ─── SECTION COMMON ─── */
+    section { padding: 6rem 4rem; }
+    .section-label {
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.2em;
+      color: var(--green-neon); margin-bottom: 0.8rem;
+      display: flex; align-items: center; gap: 0.8rem;
+    }
+    .section-label::before { content: ''; display: block; width: 30px; height: 1px; background: var(--green-neon); }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 4vw, 3.8rem);
+      line-height: 1; letter-spacing: 0.03em;
+    }
+    .section-title em { color: var(--green-neon); font-style: normal; }
+
+    /* ─── CATEGORIES ─── */
+    .categories { background: var(--dark); }
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5px;
+      margin-top: 3rem;
+      background: rgba(126,219,90,0.1);
+    }
+    .cat-card {
+      background: var(--mid);
+      padding: 2.5rem 2rem;
+      cursor: pointer;
+      position: relative; overflow: hidden;
+      transition: background 0.3s;
+      text-decoration: none; color: inherit;
+      display: block;
+    }
+    .cat-card::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+      background: var(--green-neon);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.3s;
+    }
+    .cat-card:hover { background: #243020; }
+    .cat-card:hover::after { transform: scaleX(1); }
+    .cat-icon { font-size: 2.8rem; margin-bottom: 1.2rem; display: block; }
+    .cat-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem; letter-spacing: 0.05em;
+    }
+    .cat-count { color: var(--gray); font-size: 0.8rem; margin-top: 0.4rem; }
+    .cat-arrow {
+      position: absolute; right: 1.5rem; bottom: 1.5rem;
+      color: var(--green-neon); font-size: 1.2rem;
+      opacity: 0; transform: translateX(-8px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .cat-card:hover .cat-arrow { opacity: 1; transform: translateX(0); }
+
+    /* ─── PRODUCTS ─── */
+    .products { background: var(--black); }
+    .prod-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 3rem;
+    }
+    .prod-filter {
+      display: flex; gap: 0.5rem;
+    }
+    .filter-btn {
+      border: 1px solid rgba(126,219,90,0.2);
+      background: none; color: var(--gray);
+      padding: 0.4rem 1rem; font-size: 0.8rem;
+      cursor: pointer; font-family: inherit;
+      transition: all 0.2s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      border-color: var(--green-neon); color: var(--green-neon);
+      background: rgba(126,219,90,0.06);
+    }
+    .prod-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1.5px; background: rgba(126,219,90,0.08);
+    }
+    .prod-card {
+      background: var(--dark);
+      position: relative; overflow: hidden;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .prod-card:hover { background: var(--mid); }
+    .prod-card:first-child {
+      grid-row: span 2;
+    }
+    .prod-img {
+      background: var(--mid);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 5rem; padding: 3rem;
+      position: relative; overflow: hidden;
+    }
+    .prod-card:first-child .prod-img { padding: 5rem 3rem; font-size: 8rem; }
+    .prod-img::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(126,219,90,0.1), transparent 70%);
+    }
+    .prod-badge {
+      position: absolute; top: 1rem; left: 1rem;
+      background: var(--orange); color: var(--white);
+      font-size: 0.65rem; font-weight: 700;
+      padding: 0.25rem 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .prod-info { padding: 1.5rem; }
+    .prod-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem; letter-spacing: 0.04em;
+    }
+    .prod-card:first-child .prod-name { font-size: 1.8rem; }
+    .prod-spec { color: var(--gray); font-size: 0.78rem; margin-top: 0.3rem; }
+    .prod-bottom {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 1rem;
+    }
+    .prod-price {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem; color: var(--green-neon);
+    }
+    .prod-price-orig { color: var(--gray); font-size: 0.8rem; text-decoration: line-through; margin-left: 0.5rem; font-family: inherit; }
+    .prod-add {
+      background: var(--green-neon); color: var(--black);
+      border: none; width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1.2rem; font-weight: 700;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .prod-add:hover { background: var(--orange); transform: scale(1.1); }
+    .prod-stars { color: var(--orange); font-size: 0.8rem; margin-top: 0.4rem; }
+
+    /* ─── FEATURES ─── */
+    .features {
+      background: var(--dark);
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 5rem; align-items: center;
+    }
+    .feat-visual {
+      position: relative;
+    }
+    .feat-box {
+      background: var(--mid);
+      border: 1px solid rgba(126,219,90,0.15);
+      padding: 3rem; font-size: 7rem;
+      text-align: center;
+      position: relative;
+    }
+    .feat-box::before {
+      content: '';
+      position: absolute; top: -1px; left: 2rem; right: 2rem; height: 2px;
+      background: var(--green-neon);
+    }
+    .feat-float {
+      position: absolute;
+      background: var(--black);
+      border: 1px solid rgba(126,219,90,0.25);
+      padding: 1rem 1.2rem;
+      font-size: 0.8rem;
+    }
+    .feat-float.f1 { bottom: -1.5rem; right: -1.5rem; }
+    .feat-float.f2 { top: 2rem; left: -1.5rem; }
+    .feat-float-val {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem; color: var(--green-neon);
+    }
+    .feat-float-label { color: var(--gray); font-size: 0.7rem; text-transform: uppercase; }
+
+    .feat-list { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    .feat-item {
+      display: flex; gap: 1.2rem; align-items: flex-start;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(126,219,90,0.08);
+    }
+    .feat-item:last-child { border: none; }
+    .feat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem; color: rgba(126,219,90,0.2); line-height: 1;
+      min-width: 2.5rem;
+    }
+    .feat-item-title { font-weight: 500; margin-bottom: 0.3rem; }
+    .feat-item-desc { color: var(--gray); font-size: 0.85rem; line-height: 1.6; }
+
+    /* ─── TESTIMONIALS ─── */
+    .testimonials { background: var(--black); }
+    .test-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1.5px; background: rgba(126,219,90,0.08);
+      margin-top: 3rem;
+    }
+    .test-card {
+      background: var(--dark);
+      padding: 2rem;
+    }
+    .test-stars { color: var(--orange); font-size: 0.9rem; margin-bottom: 1rem; }
+    .test-text { color: var(--gray); font-size: 0.88rem; line-height: 1.7; margin-bottom: 1.5rem; }
+    .test-author { display: flex; align-items: center; gap: 0.8rem; }
+    .test-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--mid);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; border: 1px solid rgba(126,219,90,0.2);
+    }
+    .test-name { font-weight: 500; font-size: 0.85rem; }
+    .test-role { color: var(--gray); font-size: 0.75rem; }
+
+    /* ─── CTA ─── */
+    .cta-section {
+      background: var(--green);
+      padding: 5rem 4rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute; right: -100px; top: -100px;
+      width: 400px; height: 400px; border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+    }
+    .cta-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      line-height: 1;
+    }
+    .cta-sub { color: rgba(240,245,238,0.7); margin-top: 0.8rem; font-size: 0.95rem; }
+    .cta-actions { display: flex; gap: 1rem; margin-top: 0; }
+    .btn-white {
+      background: var(--white); color: var(--green);
+      padding: 0.9rem 2.5rem; font-weight: 700;
+      text-decoration: none; font-size: 0.9rem;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+      transition: transform 0.2s;
+    }
+    .btn-white:hover { transform: translateY(-2px); background: var(--green-neon); }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--dark);
+      padding: 4rem 4rem 2rem;
+      border-top: 1px solid rgba(126,219,90,0.1);
+    }
+    .footer-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; margin-bottom: 3rem;
+    }
+    .footer-brand .logo { display: block; margin-bottom: 1rem; }
+    .footer-desc { color: var(--gray); font-size: 0.85rem; line-height: 1.7; }
+    .footer-h { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.1em; margin-bottom: 1.2rem; color: var(--green-neon); }
+    footer ul { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+    footer ul li a { color: var(--gray); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+    footer ul li a:hover { color: var(--white); }
+    .footer-bottom {
+      border-top: 1px solid rgba(126,219,90,0.08);
+      padding-top: 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      color: var(--gray); font-size: 0.78rem;
+    }
+
+    /* ─── CART BUTTON ─── */
+    .cart-fab {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 200;
+      background: var(--green-neon); color: var(--black);
+      width: 56px; height: 56px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; cursor: pointer; border: none;
+      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+      box-shadow: 0 0 30px rgba(126,219,90,0.35);
+      transition: background 0.2s, transform 0.2s;
+    }
+    .cart-fab:hover { background: var(--orange); transform: scale(1.05); }
+    .cart-count {
+      position: absolute; top: -4px; right: -4px;
+      background: var(--orange); color: white;
+      border-radius: 50%; width: 20px; height: 20px;
+      font-size: 0.7rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* responsive */
+    @media (max-width: 1024px) {
+      nav { padding: 1rem 2rem; }
+      nav ul { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 7rem 2rem 3rem; }
+      .hero-visual { display: none; }
+      .cat-grid { grid-template-columns: repeat(2,1fr); }
+      .prod-grid { grid-template-columns: 1fr 1fr; }
+      .prod-card:first-child { grid-row: span 1; }
+      .features { grid-template-columns: 1fr; padding: 4rem 2rem; }
+      .feat-visual { display: none; }
+      .test-grid { grid-template-columns: 1fr; }
+      .cta-section { flex-direction: column; gap: 2rem; text-align: center; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      section { padding: 4rem 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#">Maple <span>Electronics</span></a>
+  <ul>
+    <li><a href="#categories">Categories</a></li>
+    <li><a href="#products">Best Sellers</a></li>
+    <li><a href="#features">Why Us</a></li>
+    <li><a href="#testimonials">Reviews</a></li>
+    <li><a href="#contact" class="nav-cta">Shop Now</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge">Professional · Power Garden Tools</div>
+    <h1>Make Every<br/>Garden <em>Thrive</em><br/><span class="accent">With Power</span></h1>
+    <p class="hero-sub">20 years focused on professional power garden tools — delivering high-performance, low-noise, and reliable solutions for homeowners and pros alike.</p>
+    <div class="hero-actions">
+      <a href="#products" class="btn-primary">Browse Products</a>
+      <a href="#features" class="btn-ghost">Our Story</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-num">500+</div>
+        <div class="stat-label">Products</div>
+      </div>
+      <div>
+        <div class="stat-num">20W+</div>
+        <div class="stat-label">Happy Customers</div>
+      </div>
+      <div>
+        <div class="stat-num">48H</div>
+        <div class="stat-label">Fast Shipping</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="hero-circle">
+      <div class="tool-icon">🌿</div>
+      <div class="hero-tag t1">
+        <div class="hero-tag-title">Brushless Motor</div>
+        <div class="hero-tag-val">3× Longer Life</div>
+      </div>
+      <div class="hero-tag t2">
+        <div class="hero-tag-title">After-Sales</div>
+        <div class="hero-tag-val">2-Year Warranty</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-bar">
+  <div class="marquee-track">
+    <span>⚡</span> Brushless Motor <span>·</span> Fast Charge <span>·</span> Low Noise <span>·</span> IP54 Rated <span>·</span> 2-Year Warranty <span>·</span> Fast Shipping <span>⚡</span> Brushless Motor <span>·</span> Fast Charge <span>·</span> Low Noise <span>·</span> IP54 Rated <span>·</span> 2-Year Warranty <span>·</span> Fast Shipping <span>⚡</span> Brushless Motor <span>·</span> Fast Charge <span>·</span> Low Noise <span>·</span> IP54 Rated <span>·</span> 2-Year Warranty <span>·</span> Fast Shipping
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<section class="categories" id="categories">
+  <div class="section-label">Categories</div>
+  <div class="section-title">Full Range of<br/><em>Tools</em> for Every Job</div>
+  <div class="cat-grid">
+    <a class="cat-card" href="#">
+      <span class="cat-icon">🌿</span>
+      <div class="cat-name">Hedge Trimmers</div>
+      <div class="cat-count">32 Products</div>
+      <div class="cat-arrow">→</div>
+    </a>
+    <a class="cat-card" href="#">
+      <span class="cat-icon">🪚</span>
+      <div class="cat-name">Chain Saws</div>
+      <div class="cat-count">24 Products</div>
+      <div class="cat-arrow">→</div>
+    </a>
+    <a class="cat-card" href="#">
+      <span class="cat-icon">💨</span>
+      <div class="cat-name">Leaf Blowers</div>
+      <div class="cat-count">18 Products</div>
+      <div class="cat-arrow">→</div>
+    </a>
+    <a class="cat-card" href="#">
+      <span class="cat-icon">🌾</span>
+      <div class="cat-name">Lawn Mowers</div>
+      <div class="cat-count">41 Products</div>
+      <div class="cat-arrow">→</div>
+    </a>
+    <a class="cat-card" href="#">
+      <span class="cat-icon">💧</span>
+      <div class="cat-name">Water Pumps</div>
+      <div class="cat-count">15 Products</div>
+      <div class="cat-arrow">→</div>
+    </a>
+    <a class="cat-card" href="#">
+      <span class="cat-icon">🔧</span>
+      <div class="cat-name">Parts & Accessories</div>
+      <div class="cat-count">120+ Items</div>
+      <div class="cat-arrow">→</div>
+    </a>
+    <a class="cat-card" href="#">
+      <span class="cat-icon">🔋</span>
+      <div class="cat-name">Batteries & Chargers</div>
+      <div class="cat-count">28 Products</div>
+      <div class="cat-arrow">→</div>
+    </a>
+    <a class="cat-card" href="#">
+      <span class="cat-icon">🌱</span>
+      <div class="cat-name">Tillers & Seeders</div>
+      <div class="cat-count">20 Products</div>
+      <div class="cat-arrow">→</div>
+    </a>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section class="products" id="products">
+  <div class="prod-header">
+    <div>
+      <div class="section-label">Best Sellers</div>
+      <div class="section-title">This Month's<br/><em>Top Picks</em></div>
+    </div>
+    <div class="prod-filter">
+      <button class="filter-btn active" onclick="setFilter(this)">All</button>
+      <button class="filter-btn" onclick="setFilter(this)">Trimming</button>
+      <button class="filter-btn" onclick="setFilter(this)">Mowing</button>
+      <button class="filter-btn" onclick="setFilter(this)">Cleanup</button>
+    </div>
+  </div>
+  <div class="prod-grid">
+    <!-- Featured -->
+    <div class="prod-card" onclick="addToCart()">
+      <div class="prod-badge">Best Seller</div>
+      <div class="prod-img" style="font-size:8rem; padding:5rem 3rem;">🌿</div>
+      <div class="prod-info">
+        <div class="prod-name">ME Pro 680 Brushless Hedge Trimmer</div>
+        <div class="prod-spec">Brushless Motor | 680W | Dual Blade | 65cm Bar</div>
+        <div class="prod-stars">★★★★★ <span style="color:var(--gray)">(286 reviews)</span></div>
+        <div class="prod-bottom">
+          <div>
+            <span class="prod-price">¥1,299</span>
+            <span class="prod-price-orig">¥1,799</span>
+          </div>
+          <button class="prod-add" onclick="event.stopPropagation();addToCart()">+</button>
+        </div>
+      </div>
+    </div>
+    <!-- Card 2 -->
+    <div class="prod-card" onclick="addToCart()">
+      <div class="prod-img">🪚</div>
+      <div class="prod-info">
+        <div class="prod-name">ME Chain 400 Electric Chainsaw</div>
+        <div class="prod-spec">400W | 40cm Bar | Auto-Lube</div>
+        <div class="prod-stars">★★★★☆ <span style="color:var(--gray)">(142 reviews)</span></div>
+        <div class="prod-bottom">
+          <div><span class="prod-price">¥899</span></div>
+          <button class="prod-add" onclick="event.stopPropagation();addToCart()">+</button>
+        </div>
+      </div>
+    </div>
+    <!-- Card 3 -->
+    <div class="prod-card" onclick="addToCart()">
+      <div class="prod-badge" style="background:var(--green-neon);color:var(--black)">New</div>
+      <div class="prod-img">💨</div>
+      <div class="prod-info">
+        <div class="prod-name">ME Air 500 Leaf Blower & Vac</div>
+        <div class="prod-spec">500W | 70m³/h | 3-Speed</div>
+        <div class="prod-stars">★★★★★ <span style="color:var(--gray)">(98 reviews)</span></div>
+        <div class="prod-bottom">
+          <div><span class="prod-price">¥599</span><span class="prod-price-orig">¥799</span></div>
+          <button class="prod-add" onclick="event.stopPropagation();addToCart()">+</button>
+        </div>
+      </div>
+    </div>
+    <!-- Card 4 -->
+    <div class="prod-card" onclick="addToCart()">
+      <div class="prod-img">🌾</div>
+      <div class="prod-info">
+        <div class="prod-name">ME Mow 1200 Self-Propelled Lawn Mower</div>
+        <div class="prod-spec">1200W | 42cm Deck | Self-Propelled</div>
+        <div class="prod-stars">★★★★★ <span style="color:var(--gray)">(205 reviews)</span></div>
+        <div class="prod-bottom">
+          <div><span class="prod-price">¥2,199</span></div>
+          <button class="prod-add" onclick="event.stopPropagation();addToCart()">+</button>
+        </div>
+      </div>
+    </div>
+    <!-- Card 5 -->
+    <div class="prod-card" onclick="addToCart()">
+      <div class="prod-img">💧</div>
+      <div class="prod-info">
+        <div class="prod-name">ME Pump 300 Smart Water Pump</div>
+        <div class="prod-spec">300W | 2500L/h | App Control</div>
+        <div class="prod-stars">★★★★☆ <span style="color:var(--gray)">(77 reviews)</span></div>
+        <div class="prod-bottom">
+          <div><span class="prod-price">¥449</span></div>
+          <button class="prod-add" onclick="event.stopPropagation();addToCart()">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="feat-visual">
+    <div class="feat-box">⚡
+      <div class="feat-float f1">
+        <div class="feat-float-val">IP54</div>
+        <div class="feat-float-label">Dust & Water Rating</div>
+      </div>
+      <div class="feat-float f2">
+        <div class="feat-float-val">-20°C ~ 50°C</div>
+        <div class="feat-float-label">Operating Temp Range</div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="section-label">Why Choose Us</div>
+    <div class="section-title">Professional Quality<br/><em>Guaranteed</em></div>
+    <div class="feat-list">
+      <div class="feat-item">
+        <div class="feat-num">01</div>
+        <div>
+          <div class="feat-item-title">Brushless Motor Tech</div>
+          <div class="feat-item-desc">3× longer lifespan than brushed motors — more efficient, cooler, quieter, even during extended use.</div>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-num">02</div>
+        <div>
+          <div class="feat-item-title">Fast-Charge Battery Platform</div>
+          <div class="feat-item-desc">Universal 20V/40V battery system — 45-min charge gives 2 hrs of runtime, shared across 80+ tools.</div>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-num">03</div>
+        <div>
+          <div class="feat-item-title">2-Year Full Warranty</div>
+          <div class="feat-item-desc">Free repair or replacement within 2 years for non-accidental damage. 30-day hassle-free returns.</div>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-num">04</div>
+        <div>
+          <div class="feat-item-title">Ships Within 48 Hours</div>
+          <div class="feat-item-desc">Orders dispatched within 48 hours via Canada Post or UPS. Free shipping on orders over C$199.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials" id="testimonials">
+  <div class="section-label">Customer Reviews</div>
+  <div class="section-title">Real Buyer<br/><em>Feedback</em></div>
+  <div class="test-grid">
+    <div class="test-card">
+      <div class="test-stars">★★★★★</div>
+      <p class="test-text">Got the ME Pro 680 hedge trimmer — trimming our backyard hedges is so easy now. Way quieter than I expected, and the battery lasted nearly two hours. Very happy!</p>
+      <div class="test-author">
+        <div class="test-avatar">👨‍🌾</div>
+        <div>
+          <div class="test-name">James T.</div>
+          <div class="test-role">Toronto, ON · Homeowner</div>
+        </div>
+      </div>
+    </div>
+    <div class="test-card">
+      <div class="test-stars">★★★★★</div>
+      <p class="test-text">We bought 10 mowers for our landscaping company. Rock-solid quality — only one issue in two years, and they sent a replacement the same week. Great service.</p>
+      <div class="test-author">
+        <div class="test-avatar">👩</div>
+        <div>
+          <div class="test-name">Sarah L.</div>
+          <div class="test-role">Vancouver, BC · Landscaping Co.</div>
+        </div>
+      </div>
+    </div>
+    <div class="test-card">
+      <div class="test-stars">★★★★☆</div>
+      <p class="test-text">Great value chainsaw. One of the best at this price point. Felt a bit heavy at first but you get used to it fast — cuts through thick branches with zero effort.</p>
+      <div class="test-author">
+        <div class="test-avatar">👨</div>
+        <div>
+          <div class="test-name">Mike W.</div>
+          <div class="test-role">Calgary, AB · Groundskeeper</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contact">
+  <div>
+    <div class="cta-title">Ready to Build<br/>the Perfect Garden?</div>
+    <p class="cta-sub">Shop now — 10% off your first order · Free shipping · 2-year warranty</p>
+  </div>
+  <div class="cta-actions">
+    <a href="#products" class="btn-white">Shop Now</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a class="logo" href="#">Maple <span>Electronics</span></a>
+      <p class="footer-desc">Maple Electronics specializes in professional power garden tools — helping every lawn and garden work smarter, not harder.</p>
+    </div>
+    <div>
+      <div class="footer-h">Products</div>
+      <ul>
+        <li><a href="#">Hedge Trimmers</a></li>
+        <li><a href="#">Chain Saws</a></li>
+        <li><a href="#">Lawn Mowers</a></li>
+        <li><a href="#">Leaf Blowers</a></li>
+        <li><a href="#">Parts & Accessories</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-h">Support</div>
+      <ul>
+        <li><a href="#">Warranty</a></li>
+        <li><a href="#">Repair Request</a></li>
+        <li><a href="#">How-To Guides</a></li>
+        <li><a href="#">Become a Dealer</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-h">Contact</div>
+      <ul>
+        <li><a href="#">📞 1-800-MAPLE-ET</a></li>
+        <li><a href="#">📧 hello@mapleelectronics.ca</a></li>
+        <li><a href="#">📍 Canada-wide service</a></li>
+        <li><a href="#">💬 Live Chat</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Maple Electronics · All Rights Reserved</span>
+    <span>Privacy Policy · Returns · About Us</span>
+  </div>
+</footer>
+
+<!-- CART FAB -->
+<button class="cart-fab" onclick="toggleCart()">
+  🛒
+  <div class="cart-count" id="cartCount">0</div>
+</button>
+
+<script>
+  let cartItems = 0;
+
+  function addToCart() {
+    cartItems++;
+    document.getElementById('cartCount').textContent = cartItems;
+    const fab = document.querySelector('.cart-fab');
+    fab.style.transform = 'scale(1.25)';
+    setTimeout(() => fab.style.transform = '', 200);
+  }
+
+  function toggleCart() {
+    alert(`You have ${cartItems} item(s) in your cart.\n\nConnect to Shopify or WooCommerce to enable real checkout.`);
+  }
+
+  function setFilter(btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.cat-card, .prod-card, .test-card, .feat-item').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease, background 0.3s';
+    observer.observe(el);
+  });
+</script>
+
+</body>
+</html>
