@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — Maple Electronics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <!-- Stripe.js — official payment SDK, must be loaded from stripe.com -->
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    :root {
+      --green: #2d6a2d;
+      --green-light: #4a9e3f;
+      --green-neon: #7edb5a;
+      --black: #0d0f0c;
+      --dark: #131a11;
+      --mid: #1e2b1a;
+      --gray: #8a9e84;
+      --white: #f0f5ee;
+      --orange: #e8651a;
+      --red: #e84040;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Noto Sans SC', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: 0.5;
+    }
+
+    /* HEADER */
+    header {
+      border-bottom: 1px solid rgba(126,219,90,0.12);
+      padding: 1.2rem 4rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.1em; color: var(--green-neon); text-decoration: none; }
+    .logo span { color: var(--orange); }
+    .secure-badge {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.78rem; color: var(--gray);
+    }
+    .secure-badge::before { content: '🔒'; font-size: 0.9rem; }
+
+    /* STEPS */
+    .steps {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; padding: 1.5rem 4rem;
+      border-bottom: 1px solid rgba(126,219,90,0.08);
+    }
+    .step { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; }
+    .step-num {
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700;
+    }
+    .step.done .step-num { background: var(--green-neon); color: var(--black); }
+    .step.active .step-num { background: var(--green-neon); color: var(--black); }
+    .step.pending .step-num { background: var(--mid); color: var(--gray); border: 1px solid rgba(126,219,90,0.2); }
+    .step.done .step-label { color: var(--green-neon); }
+    .step.active .step-label { color: var(--white); font-weight: 500; }
+    .step.pending .step-label { color: var(--gray); }
+    .step-sep { width: 60px; height: 1px; background: rgba(126,219,90,0.2); margin: 0 0.5rem; }
+
+    /* LAYOUT */
+    .checkout-layout {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 0;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3rem 4rem;
+      align-items: start;
+    }
+
+    /* LEFT FORM */
+    .form-side { padding-right: 4rem; }
+
+    .section-head {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 1.5rem; margin-top: 2.5rem;
+    }
+    .section-head:first-child { margin-top: 0; }
+    .section-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem; color: var(--green-neon);
+      line-height: 1;
+    }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.2rem; letter-spacing: 0.05em;
+    }
+
+    /* FORM ELEMENTS */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-row.full { grid-template-columns: 1fr; }
+    .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+    .field { display: flex; flex-direction: column; gap: 0.4rem; }
+    .field label { font-size: 0.75rem; color: var(--gray); letter-spacing: 0.06em; text-transform: uppercase; }
+    .field input, .field select {
+      background: var(--dark);
+      border: 1px solid rgba(126,219,90,0.15);
+      color: var(--white);
+      padding: 0.75rem 1rem;
+      font-family: inherit; font-size: 0.9rem;
+      transition: border-color 0.2s;
+      outline: none;
+      appearance: none;
+    }
+    .field input:focus, .field select:focus { border-color: var(--green-neon); }
+    .field input::placeholder { color: var(--gray); }
+    .field select option { background: var(--dark); }
+    .field.error input, .field.error select { border-color: var(--red); }
+    .field-err { font-size: 0.72rem; color: var(--red); margin-top: 0.2rem; display: none; }
+    .field.error .field-err { display: block; }
+
+    /* SHIPPING OPTIONS */
+    .shipping-opts { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1rem; }
+    .ship-opt {
+      display: flex; align-items: center; gap: 1rem;
+      background: var(--dark);
+      border: 1px solid rgba(126,219,90,0.15);
+      padding: 1rem 1.2rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .ship-opt.selected { border-color: var(--green-neon); background: rgba(126,219,90,0.05); }
+    .ship-radio {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid rgba(126,219,90,0.3);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: border-color 0.2s;
+    }
+    .ship-opt.selected .ship-radio { border-color: var(--green-neon); }
+    .ship-radio::after {
+      content: ''; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green-neon);
+      display: none;
+    }
+    .ship-opt.selected .ship-radio::after { display: block; }
+    .ship-info { flex: 1; }
+    .ship-name { font-size: 0.88rem; font-weight: 500; }
+    .ship-time { font-size: 0.75rem; color: var(--gray); margin-top: 0.2rem; }
+    .ship-price { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--green-neon); }
+    .ship-price.free { color: var(--green-neon); }
+
+    /* PAYMENT */
+    .pay-tabs { display: flex; gap: 0.6rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+    .pay-tab {
+      border: 1px solid rgba(126,219,90,0.2);
+      background: var(--dark);
+      color: var(--gray);
+      padding: 0.55rem 1.2rem; font-size: 0.82rem;
+      cursor: pointer; font-family: inherit;
+      transition: all 0.2s;
+    }
+    .pay-tab.active { border-color: var(--green-neon); color: var(--green-neon); background: rgba(126,219,90,0.05); }
+
+    .card-icons { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .card-icon {
+      background: var(--mid); border: 1px solid rgba(126,219,90,0.1);
+      padding: 0.3rem 0.6rem; font-size: 0.8rem; color: var(--gray);
+    }
+
+    .card-num-wrapper {
+      position: relative; margin-bottom: 1rem;
+    }
+    .card-num-wrapper input { width: 100%; padding-right: 3rem; }
+    .card-type {
+      position: absolute; right: 1rem; top: 50%;
+      transform: translateY(-50%); font-size: 1rem;
+    }
+
+    /* COUPON */
+    .coupon-row {
+      display: flex; gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+    .coupon-row input { flex: 1; }
+    .coupon-btn {
+      background: none; border: 1px solid rgba(126,219,90,0.3);
+      color: var(--green-neon); padding: 0 1.2rem;
+      font-family: inherit; font-size: 0.85rem;
+      cursor: pointer; white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .coupon-btn:hover { background: rgba(126,219,90,0.1); }
+    .coupon-success { font-size: 0.78rem; color: var(--green-neon); margin-top: 0.3rem; display: none; }
+
+    /* SUBMIT */
+    .submit-section { margin-top: 2.5rem; }
+    .btn-submit {
+      width: 100%;
+      background: var(--green-neon); color: var(--black);
+      border: none; padding: 1.1rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem; letter-spacing: 0.1em;
+      cursor: pointer;
+      clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-submit:hover { background: var(--orange); }
+    .btn-submit:active { transform: scale(0.99); }
+    .submit-note {
+      text-align: center; color: var(--gray); font-size: 0.75rem;
+      margin-top: 0.8rem; line-height: 1.6;
+    }
+
+    /* RIGHT: ORDER SUMMARY */
+    .order-side {
+      background: var(--dark);
+      border: 1px solid rgba(126,219,90,0.12);
+      position: sticky; top: 2rem;
+    }
+    .order-header {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid rgba(126,219,90,0.1);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem; letter-spacing: 0.08em; color: var(--gray);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .order-toggle {
+      background: none; border: none; color: var(--green-neon);
+      font-size: 0.78rem; cursor: pointer; font-family: inherit;
+      letter-spacing: 0.05em;
+    }
+    .order-items { padding: 1rem 1.5rem; }
+    .order-item {
+      display: flex; gap: 1rem; align-items: center;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid rgba(126,219,90,0.06);
+    }
+    .order-item:last-child { border: none; }
+    .item-img {
+      width: 60px; height: 60px; flex-shrink: 0;
+      background: var(--mid); border: 1px solid rgba(126,219,90,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; position: relative;
+    }
+    .item-qty-badge {
+      position: absolute; top: -8px; right: -8px;
+      background: var(--gray); color: var(--black);
+      border-radius: 50%; width: 20px; height: 20px;
+      font-size: 0.7rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .item-name { font-size: 0.85rem; font-weight: 400; flex: 1; }
+    .item-spec { color: var(--gray); font-size: 0.75rem; margin-top: 0.2rem; }
+    .item-price { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; white-space: nowrap; }
+
+    .order-calcs {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid rgba(126,219,90,0.1);
+    }
+    .calc-row {
+      display: flex; justify-content: space-between;
+      font-size: 0.85rem; padding: 0.4rem 0;
+      color: var(--gray);
+    }
+    .calc-row.discount { color: var(--orange); }
+    .calc-row.total {
+      color: var(--white);
+      font-weight: 500;
+      padding-top: 1rem; margin-top: 0.5rem;
+      border-top: 1px solid rgba(126,219,90,0.15);
+    }
+    .calc-row.total .val {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem; color: var(--green-neon);
+    }
+    .calc-tax { color: var(--gray); font-size: 0.72rem; text-align: right; margin-top: 0.3rem; }
+
+    /* TRUST FOOTER */
+    .trust-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid rgba(126,219,90,0.1);
+      display: flex; flex-direction: column; gap: 0.6rem;
+    }
+    .trust-row {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.75rem; color: var(--gray);
+    }
+    .trust-row span:first-child { font-size: 0.9rem; }
+
+    /* SUCCESS MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(13,15,12,0.95);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none; align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--dark);
+      border: 1px solid rgba(126,219,90,0.25);
+      padding: 4rem 3rem;
+      text-align: center;
+      max-width: 480px;
+      animation: scaleIn 0.4s ease;
+    }
+    @keyframes scaleIn { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
+    .modal-icon { font-size: 4rem; margin-bottom: 1.5rem; }
+    .modal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem; letter-spacing: 0.05em; margin-bottom: 0.8rem;
+    }
+    .modal-sub { color: var(--gray); font-size: 0.9rem; line-height: 1.7; margin-bottom: 1.5rem; }
+    .modal-order {
+      background: var(--mid); padding: 0.8rem 1.5rem;
+      font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem;
+      letter-spacing: 0.1em; color: var(--green-neon);
+      margin-bottom: 2rem;
+    }
+    .modal-btn {
+      background: var(--green-neon); color: var(--black);
+      border: none; padding: 0.8rem 2.5rem;
+      font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem;
+      letter-spacing: 0.1em; cursor: pointer;
+      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    }
+
+    /* STRIPE ELEMENTS */
+    .stripe-input {
+      background: var(--dark);
+      border: 1px solid rgba(126,219,90,0.15);
+      padding: 0.82rem 1rem;
+      transition: border-color 0.2s;
+    }
+    .stripe-input.StripeElement--focus { border-color: var(--green-neon); }
+    .stripe-input.StripeElement--invalid { border-color: var(--red); }
+
+    @media (max-width: 900px) {
+      header { padding: 1rem 1.5rem; }
+      .checkout-layout { grid-template-columns: 1fr; padding: 2rem 1.5rem; }
+      .form-side { padding-right: 0; }
+      .order-side { position: static; }
+      .steps { padding: 1rem; }
+      .step-sep { width: 30px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html">Maple <span>Electronics</span></a>
+  <div class="secure-badge">SSL Encrypted Secure Checkout</div>
+</header>
+
+<!-- STEPS -->
+<div class="steps">
+  <div class="step done">
+    <div class="step-num">✓</div>
+    <div class="step-label">Cart</div>
+  </div>
+  <div class="step-sep"></div>
+  <div class="step active">
+    <div class="step-num">2</div>
+    <div class="step-label">Details</div>
+  </div>
+  <div class="step-sep"></div>
+  <div class="step pending">
+    <div class="step-num">3</div>
+    <div class="step-label">Payment</div>
+  </div>
+  <div class="step-sep"></div>
+  <div class="step pending">
+    <div class="step-num">4</div>
+    <div class="step-label">Done</div>
+  </div>
+</div>
+
+<div class="checkout-layout">
+  <!-- LEFT: Form -->
+  <div class="form-side">
+
+    <!-- CONTACT -->
+    <div class="section-head">
+      <div class="section-num">01</div>
+      <div class="section-title">Contact Information</div>
+    </div>
+    <div class="form-row full">
+      <div class="field" id="f-email">
+        <label>Email Address *</label>
+        <input type="email" id="email" placeholder="you@email.com" oninput="validate('f-email','email')" />
+        <div class="field-err">Please enter a valid email address</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field" id="f-fname">
+        <label>First Name *</label>
+        <input type="text" id="fname" placeholder="John" oninput="validate('f-fname','fname')" />
+        <div class="field-err">Required</div>
+      </div>
+      <div class="field" id="f-lname">
+        <label>Last Name *</label>
+        <input type="text" id="lname" placeholder="Smith" oninput="validate('f-lname','lname')" />
+        <div class="field-err">Required</div>
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="field">
+        <label>Phone (optional)</label>
+        <input type="tel" id="phone" placeholder="+1 (416) 000-0000" />
+      </div>
+    </div>
+
+    <!-- ADDRESS -->
+    <div class="section-head">
+      <div class="section-num">02</div>
+      <div class="section-title">Shipping Address</div>
+    </div>
+    <div class="form-row full">
+      <div class="field" id="f-addr">
+        <label>Street Address *</label>
+        <input type="text" id="addr" placeholder="123 Maple Street" oninput="validate('f-addr','addr')" />
+        <div class="field-err">Please enter your street address</div>
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="field">
+        <label>Apt / Unit (optional)</label>
+        <input type="text" placeholder="Apt 4B" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field" id="f-city">
+        <label>City *</label>
+        <input type="text" id="city" placeholder="Toronto" oninput="validate('f-city','city')" />
+        <div class="field-err">Required</div>
+      </div>
+      <div class="field">
+        <label>Province *</label>
+        <select id="province">
+          <option value="">Select province</option>
+          <option>Alberta</option><option>British Columbia</option>
+          <option>Manitoba</option><option>New Brunswick</option>
+          <option>Newfoundland and Labrador</option><option>Nova Scotia</option>
+          <option>Ontario</option><option>Prince Edward Island</option>
+          <option>Quebec</option><option>Saskatchewan</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field" id="f-postal">
+        <label>Postal Code *</label>
+        <input type="text" id="postal" placeholder="M5V 3A8" maxlength="7" oninput="formatPostal(this)" />
+        <div class="field-err">Enter a valid Canadian postal code</div>
+      </div>
+      <div class="field">
+        <label>Country</label>
+        <input type="text" value="Canada 🇨🇦" readonly style="opacity:0.6; cursor:default;" />
+      </div>
+    </div>
+
+    <!-- SHIPPING -->
+    <div class="section-head">
+      <div class="section-num">03</div>
+      <div class="section-title">Shipping Method</div>
+    </div>
+    <div class="shipping-opts">
+      <div class="ship-opt selected" onclick="selectShip(this, 0)">
+        <div class="ship-radio"></div>
+        <div class="ship-info">
+          <div class="ship-name">🚚 Canada Post — Standard</div>
+          <div class="ship-time">Estimated 5–8 business days</div>
+        </div>
+        <div class="ship-price free">FREE</div>
+      </div>
+      <div class="ship-opt" onclick="selectShip(this, 1500)">
+        <div class="ship-radio"></div>
+        <div class="ship-info">
+          <div class="ship-name">⚡ Canada Post — Xpresspost</div>
+          <div class="ship-time">Estimated 2–3 business days</div>
+        </div>
+        <div class="ship-price">C$15.00</div>
+      </div>
+      <div class="ship-opt" onclick="selectShip(this, 3500)">
+        <div class="ship-radio"></div>
+        <div class="ship-info">
+          <div class="ship-name">🏃 UPS — Next Day Air</div>
+          <div class="ship-time">Next business day by end of day</div>
+        </div>
+        <div class="ship-price">C$35.00</div>
+      </div>
+    </div>
+
+    <!-- PAYMENT -->
+    <div class="section-head">
+      <div class="section-num">04</div>
+      <div class="section-title">Payment</div>
+    </div>
+
+    <!-- Stripe Card Icons -->
+    <div class="card-icons" style="margin-bottom:1rem;">
+      <div class="card-icon">VISA</div>
+      <div class="card-icon">MC</div>
+      <div class="card-icon">AMEX</div>
+      <div class="card-icon">Interac</div>
+    </div>
+
+    <!-- ───────────────────────────────────────────
+         STRIPE ELEMENTS: real credit card form
+         Card number, expiry & CVC rendered securely by Stripe.
+         Card details never touch your server.
+    ─────────────────────────────────────────── -->
+    <div id="stripe-card-section">
+      <div class="field" style="margin-bottom:1rem;">
+        <label>Card Number</label>
+        <!-- Stripe mounts a secure card number input here -->
+        <div id="stripe-card-number" class="stripe-input"></div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Expiry Date</label>
+          <div id="stripe-card-expiry" class="stripe-input"></div>
+        </div>
+        <div class="field">
+          <label>CVC</label>
+          <div id="stripe-card-cvc" class="stripe-input"></div>
+        </div>
+      </div>
+      <!-- Stripe error message display -->
+      <div id="stripe-error" style="color:var(--red); font-size:0.82rem; margin-top:0.5rem; display:none;"></div>
+    </div>
+
+    <!-- COUPON -->
+    <div style="margin-top:1.5rem;">
+      <div class="coupon-row">
+        <input type="text" id="couponInput" placeholder="Promo code (try: GREENFORCE)" />
+        <button class="coupon-btn" onclick="applyCoupon()">Apply</button>
+      </div>
+      <div class="coupon-success" id="couponSuccess">✓ Promo applied — C$50 off!</div>
+    </div>
+
+    <!-- ORDER NOTE -->
+    <div class="form-row full" style="margin-top:1rem;">
+      <div class="field">
+        <label>Order Note (optional)</label>
+        <input type="text" placeholder="Special instructions for delivery" />
+      </div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="submit-section">
+      <button class="btn-submit" id="submitBtn" onclick="submitOrder()">
+        Pay Now · C$<span id="submitAmt">1,598.00</span>
+      </button>
+      <div class="submit-note">
+        🔒 Secured by Stripe · 256-bit SSL encryption · By placing your order you agree to our
+        <a href="#" style="color:var(--green-neon); text-decoration:none;">Terms</a> and
+        <a href="#" style="color:var(--green-neon); text-decoration:none;">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Order Summary -->
+  <div class="order-side">
+    <div class="order-header">
+      Order Summary <span style="color:var(--white);">2 items</span>
+      <button class="order-toggle" onclick="toggleOrder()">Hide ▲</button>
+    </div>
+    <div class="order-items" id="orderItems">
+      <div class="order-item">
+        <div class="item-img">🌿<div class="item-qty-badge">1</div></div>
+        <div>
+          <div class="item-name">ME Pro 680 Brushless Hedge Trimmer</div>
+          <div class="item-spec">20V 4.0Ah Kit / Classic Green</div>
+        </div>
+        <div class="item-price">C$1,299</div>
+      </div>
+      <div class="order-item">
+        <div class="item-img">🔋<div class="item-qty-badge">1</div></div>
+        <div>
+          <div class="item-name">20V 4.0Ah Spare Battery</div>
+          <div class="item-spec">Standard</div>
+        </div>
+        <div class="item-price">C$299</div>
+      </div>
+    </div>
+    <div class="order-calcs">
+      <div class="calc-row"><span>Subtotal</span><span>C$1,598.00</span></div>
+      <div class="calc-row"><span>Shipping</span><span id="shippingCost">FREE</span></div>
+      <div class="calc-row"><span>HST (13% ON)</span><span id="taxAmt">C$207.74</span></div>
+      <div class="calc-row discount" id="discountRow" style="display:none;"><span>Promo: GREENFORCE</span><span>−C$50.00</span></div>
+      <div class="calc-row total">
+        <span>Total</span>
+        <span class="val" id="totalAmt">C$1,805.74</span>
+      </div>
+      <div class="calc-tax">Includes applicable Canadian taxes</div>
+    </div>
+    <div class="trust-footer">
+      <div class="trust-row"><span>🛡️</span><span>2-year warranty, Canada-wide service</span></div>
+      <div class="trust-row"><span>↩️</span><span>30-day returns, no questions asked</span></div>
+      <div class="trust-row"><span>📞</span><span>1-800-GRN-FORCE support</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal">
+    <div class="modal-icon">✅</div>
+    <div class="modal-title">Order Confirmed!</div>
+    <p class="modal-sub">Thank you for your purchase! Your order is confirmed.<br/>We'll ship within 48 hours and email your tracking number.</p>
+    <div class="modal-order">Order #: GF-2026-<span id="orderNo"></span></div>
+    <button class="modal-btn" onclick="location.href='index.html'">Back to Store</button>
+  </div>
+</div>
+
+<script>
+  // ================================================================
+  // ⚙️  STRIPE CONFIG — only change this line
+  //     1. Log in to dashboard.stripe.com
+  //     2. Toggle "Test mode" or "Live mode" top-left
+  //     3. Go to Developers → API keys
+  //     4. Copy the Publishable key (starts with pk_) and paste below
+  // ================================================================
+  const STRIPE_PUBLISHABLE_KEY = 'pk_test_YOUR_KEY_HERE';
+
+  // ================================================================
+  // ⚠️  IMPORTANT: Stripe requires a backend to create PaymentIntents
+  //     The Secret Key must never be exposed in the frontend.
+  //     Set BACKEND_URL to your backend endpoint below.
+  //     If you have no backend yet, see the Vercel Serverless Function guide.
+  // ================================================================
+  const BACKEND_URL = 'https://your-backend.vercel.app/api/create-payment-intent';
+
+  // ──────────────────────────────────────────────────────────────
+  // Prices in Canadian cents to avoid floating-point errors
+  // 1 CAD = 100 cents
+  // ──────────────────────────────────────────────────────────────
+  const BASE_CENTS   = 159800;  // C$1,598.00 subtotal
+  const TAX_RATE     = 0.13;    // Ontario HST 13% — adjust per province
+  const PROMO_CENTS  = 5000;    // C$50.00 promo discount
+
+  let shippingCents = 0;
+  let couponUsed    = false;
+  let stripe, cardNumber, cardExpiry, cardCvc;
+
+  // ──────────────────────────────────────────────────────────────
+  // Initialise Stripe Elements
+  // ──────────────────────────────────────────────────────────────
+  function initStripe() {
+    if (STRIPE_PUBLISHABLE_KEY === 'pk_test_YOUR_KEY_HERE') {
+      document.getElementById('stripe-error').style.display = 'block';
+      document.getElementById('stripe-error').textContent =
+        '⚠️  Demo mode: replace STRIPE_PUBLISHABLE_KEY with your real key to accept payments.';
+      return;
+    }
+
+    stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+    const elements = stripe.elements({
+      fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Noto+Sans+SC' }]
+    });
+
+    const style = {
+      base: {
+        color: '#f0f5ee',
+        fontFamily: '"Noto Sans SC", sans-serif',
+        fontSize: '15px',
+        fontWeight: '300',
+        '::placeholder': { color: '#8a9e84' },
+        backgroundColor: 'transparent',
+      },
+      invalid: { color: '#e84040' }
+    };
+
+    cardNumber = elements.create('cardNumber', { style, showIcon: true });
+    cardExpiry = elements.create('cardExpiry', { style });
+    cardCvc    = elements.create('cardCvc',    { style });
+
+    cardNumber.mount('#stripe-card-number');
+    cardExpiry.mount('#stripe-card-expiry');
+    cardCvc.mount('#stripe-card-cvc');
+
+    // Live error feedback
+    [cardNumber, cardExpiry, cardCvc].forEach(el => {
+      el.on('change', e => {
+        const errDiv = document.getElementById('stripe-error');
+        if (e.error) {
+          errDiv.textContent = e.error.message;
+          errDiv.style.display = 'block';
+        } else {
+          errDiv.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // Form validation
+  // ──────────────────────────────────────────────────────────────
+  function validate(fieldId, inputId) {
+    const f = document.getElementById(fieldId);
+    const v = document.getElementById(inputId).value;
+    f.classList.toggle('error', v.trim().length === 0);
+    return v.trim().length > 0;
+  }
+
+  function validateEmail() {
+    const f = document.getElementById('f-email');
+    const v = document.getElementById('email').value;
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    f.classList.toggle('error', !ok);
+    return ok;
+  }
+
+  function formatPostal(input) {
+    // Canadian postal code: A1A 1A1 format
+    let v = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (v.length > 3) v = v.slice(0,3) + ' ' + v.slice(3,6);
+    input.value = v;
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // Shipping & price updates
+  // ──────────────────────────────────────────────────────────────
+  function selectShip(el, cents) {
+    document.querySelectorAll('.ship-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    shippingCents = cents;
+    const shippingEl = document.getElementById('shippingCost');
+    shippingEl.textContent = cents === 0 ? 'FREE' : `C$${(cents/100).toFixed(2)}`;
+    updateTotal();
+  }
+
+  function updateTotal() {
+    const subtotal  = BASE_CENTS;
+    const discount  = couponUsed ? PROMO_CENTS : 0;
+    const taxable   = subtotal + shippingCents - discount;
+    const tax       = Math.round(taxable * TAX_RATE);
+    const total     = taxable + tax;
+
+    document.getElementById('taxAmt').textContent   = `C$${(tax/100).toFixed(2)}`;
+    document.getElementById('totalAmt').textContent  = `C$${(total/100).toFixed(2)}`;
+    document.getElementById('submitAmt').textContent = (total/100).toFixed(2);
+  }
+
+  function applyCoupon() {
+    const code = document.getElementById('couponInput').value.toUpperCase().trim();
+    if (['GREENFORCE', 'GF50', 'WELCOME50'].includes(code)) {
+      couponUsed = true;
+      document.getElementById('couponSuccess').style.display = 'block';
+      document.getElementById('discountRow').style.display   = 'flex';
+      updateTotal();
+    } else {
+      alert('Invalid promo code. Try: GREENFORCE');
+    }
+  }
+
+  function toggleOrder() {
+    const items = document.getElementById('orderItems');
+    const btn   = document.querySelector('.order-toggle');
+    const hide  = items.style.display !== 'none';
+    items.style.display = hide ? 'none' : 'block';
+    btn.textContent     = hide ? 'Show ▼' : 'Hide ▲';
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // Submit order & Stripe payment flow
+  // ──────────────────────────────────────────────────────────────
+  async function submitOrder() {
+    // 1. Frontend validation
+    const ok = [
+      validateEmail(),
+      validate('f-fname','fname'),
+      validate('f-lname','lname'),
+      validate('f-addr','addr'),
+      validate('f-city','city'),
+      validate('f-postal','postal'),
+    ].every(Boolean);
+    if (!ok) { window.scrollTo({top:0, behavior:'smooth'}); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = 'Processing...';
+    btn.disabled    = true;
+
+    try {
+      // 2. Ask backend to create a PaymentIntent (backend uses Secret Key)
+      //    Backend returns { clientSecret: 'pi_xxx_secret_xxx' }
+      const subtotal  = BASE_CENTS;
+      const discount  = couponUsed ? PROMO_CENTS : 0;
+      const taxable   = subtotal + shippingCents - discount;
+      const tax       = Math.round(taxable * TAX_RATE);
+      const totalCents = taxable + tax;
+
+      // ── If no backend yet, this throws and falls through to catch ──
+      let clientSecret;
+
+      if (BACKEND_URL.includes('your-backend')) {
+        // DEMO MODE: simulate success when no real backend is set
+        throw new Error('DEMO_MODE');
+      }
+
+      const res = await fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount:   totalCents,   // in cents
+          currency: 'cad',
+          metadata: {
+            customer_email: document.getElementById('email').value,
+            customer_name:  `${document.getElementById('fname').value} ${document.getElementById('lname').value}`,
+            shipping_addr:  document.getElementById('addr').value,
+          }
+        })
+      });
+      ({ clientSecret } = await res.json());
+
+      // 3. Confirm payment via Stripe.js (card data goes directly to Stripe, not your server)
+      const billingDetails = {
+        name:  `${document.getElementById('fname').value} ${document.getElementById('lname').value}`,
+        email: document.getElementById('email').value,
+        address: {
+          line1:       document.getElementById('addr').value,
+          city:        document.getElementById('city').value,
+          state:       document.getElementById('province').value,
+          postal_code: document.getElementById('postal').value,
+          country:     'CA',
+        }
+      };
+
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: { card: cardNumber, billing_details: billingDetails }
+      });
+
+      if (error) throw error;
+      if (paymentIntent.status === 'succeeded') showSuccess();
+
+    } catch (err) {
+      if (err.message === 'DEMO_MODE') {
+        // Demo: show success modal directly
+        showSuccess();
+        return;
+      }
+      // Show Stripe error message
+      const errDiv = document.getElementById('stripe-error');
+      errDiv.textContent = err.message || 'Payment failed. Please try again.';
+      errDiv.style.display = 'block';
+      btn.textContent = `Pay Now · C$${document.getElementById('submitAmt').textContent}`;
+      btn.disabled    = false;
+    }
+  }
+
+  function showSuccess() {
+    const orderNo = Math.floor(Math.random() * 900000 + 100000);
+    document.getElementById('orderNo').textContent = orderNo;
+    document.getElementById('successModal').classList.add('show');
+  }
+
+  // Init
+  document.addEventListener('DOMContentLoaded', () => {
+    initStripe();
+    updateTotal();
+  });
+</script>
+</body>
+</html>
