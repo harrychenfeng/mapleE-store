@@ -246,12 +246,12 @@
           </div>
         </div>
         <button class="btn-add" onclick="addToCart()">Add to Cart</button>
-        <button class="btn-buy" onclick="cartComingSoon(event)">Buy Now</button>
+        <button class="btn-buy" onclick="cartComingSoon(event)">Contact to Order</button>
       </div>
 
       <div class="trust-strip">
         <div class="trust-item"><div class="trust-icon">🛡️</div><div class="trust-text">2-Year Full<br/>Warranty</div></div>
-        <div class="trust-item"><div class="trust-icon">🚚</div><div class="trust-text">Ships in<br/>48 Hours</div></div>
+        <div class="trust-item"><div class="trust-icon">📞</div><div class="trust-text">Call/Text<br/>437-879-8218</div></div>
         <div class="trust-item"><div class="trust-icon">↩️</div><div class="trust-text">30-Day<br/>Returns</div></div>
       </div>
 
@@ -303,7 +303,7 @@
 <div class="sticky-bar" id="stickyBar">
   <span class="sticky-name" id="stickyName">Product</span>
   <span class="sticky-price" id="stickyPrice">$0</span>
-  <button class="sticky-btn" onclick="cartComingSoon(event)">Buy Now</button>
+  <button class="sticky-btn" onclick="cartComingSoon(event)">Contact to Order</button>
 </div>
 
 <script>
@@ -314,23 +314,28 @@
   // to show a real multi-photo gallery once you have the photos.
   const PRODUCTS = {
     chainsaw: {
-      name: "ME 2-in-1 Pole Electric Chainsaw",
+      name: "ME 2-in-1 Cordless Pole Saw & Mini Chainsaw",
       category: "Chain Saws",
       emoji: "🪚",
-      images: ["chainsaw1.jpg"],
+      images: ["chainsaw1.jpg", "chainsaw2.jpg", "chainsaw3.jpg", "chainsaw4.jpg", "chainsaw5.jpg", "chainsaw6.jpg", "chainsaw7.jpg"],
       priceCurrent: 125,
       priceOrig: 149,
       rating: { stars: "★★★★★", num: "5.0", count: "286 reviews" },
       specs: [
         ["Motor Type", "Brushless"],
-        ["Battery", "21V"],
-        ["Pole Length", "2 meters"],
-        ["Installation", "Tool-free / Easy assembly"]
+        ["Battery", "21V 2.0Ah × 2 (included)"],
+        ["Bar Length", "6\" / 15cm"],
+        ["Max Pole Length", "250cm / 98.4\""],
+        ["Working Time", "50–60 min per charge"],
+        ["Charging Time", "3–4 hours"],
+        ["Chain Tension", "Tool-free adjustment"],
+        ["In the Box", "2× battery, charger, 2× spare chain, oil, file, screwdriver, chain guard, shoulder strap, gloves"]
       ],
       description: [
-        "The ME 2-in-1 Pole Electric Chainsaw switches between a handheld chainsaw and a 2-metre pole saw, letting you cut branches at ground level or reach high up without a ladder.",
-        "A brushless 21V motor delivers strong, consistent cutting power with less noise and longer battery life than brushed alternatives.",
-        "Tool-free assembly means you can switch configurations in seconds — ideal for pruning, trimming, and light tree work around the yard."
+        "The ME 2-in-1 Cordless Pole Saw & Mini Chainsaw switches between a handheld mini chainsaw and a telescopic pole saw reaching up to 250cm (98.4\"), so you can trim high branches without a ladder or detach the head for close-up cutting and pruning.",
+        "A brushless motor delivers strong, efficient cutting — up to 100 cuts per charge with less energy draw — while staying quieter and lasting longer than brushed alternatives. A 50–60 minute working time and 3–4 hour recharge keep you moving through bigger jobs.",
+        "Tool-free chain tensioning means no wrench needed to adjust or swap the 6-inch bar and chain, and the angle switch button lets you set the head to different cutting angles for awkward branches.",
+        "Comes complete with 2 batteries, charger, 2 spare chains, bar oil, a file, screwdriver, chain guard, shoulder strap, and protective gloves — everything you need to get started."
       ]
     },
     blower: {
@@ -353,22 +358,27 @@
       ]
     },
     washer: {
-      name: "ME Cordless Washer Gun",
+      name: "ME Cordless Pressure Washer Gun",
       category: "Cleaning Tools",
       emoji: "🚿",
-      images: ["washer.jpg"],
+      images: ["washer.jpg", "washer2.jpg", "washer3.jpg", "washer4.jpg", "washer5.jpg"],
       priceCurrent: 30,
       priceOrig: 65,
       rating: { stars: "★★★★★", num: "4.8", count: "98 reviews" },
       specs: [
-        ["Batteries", "2× rechargeable (included)"],
-        ["Nozzles", "2 included"],
-        ["Foam Bottle", "Included"]
+        ["Battery", "21V × 2 (included)"],
+        ["Item Size", "40cm / 15.7in (L)"],
+        ["Handle Size", "23cm / 9in (H) × 12cm / 4.7in (W)"],
+        ["Hose", "16ft with built-in filter"],
+        ["Water Source", "Barrel, bottle, or pool — fully cordless"],
+        ["Nozzles", "Multiple spray patterns + foam pot"],
+        ["In the Box", "Tool box, 2× battery, hose, foam bottle, nozzle tips, quick connector"]
       ],
       description: [
-        "The ME Cordless Washer Gun makes quick work of washing cars, bikes, patio furniture, and outdoor gear without needing a hose hookup.",
-        "It ships with 2 rechargeable batteries so you always have a spare ready to go, plus 2 nozzle tips and a foam bottle attachment for a thicker, clingy soap foam.",
-        "Simple one-button operation makes it easy for anyone in the household to use."
+        "The ME Cordless Pressure Washer Gun makes quick work of washing cars, patios, outdoor furniture, and more — completely cordless, so you're never stuck near an outlet or hose bib.",
+        "It draws water from almost anywhere — a barrel, a bottle, or even a pool — through the included 16ft hose with a built-in filter that keeps out sand and leaves.",
+        "Switch between multiple spray patterns for different jobs, or attach the foam pot to lay down a thick soap foam for car washing. Great for courtyard flushing, car cleaning, AC unit cleaning, and kitchen cleanup.",
+        "Ships with 2 rechargeable batteries so you always have a spare ready to go, plus the hose, foam bottle, and nozzle attachments — everything you need to get started."
       ]
     },
     pruningshear: {
@@ -488,7 +498,7 @@
 
   function cartComingSoon(e) {
     if (e) e.preventDefault();
-    alert('Online checkout is coming soon! In the meantime, please contact us to place an order.');
+    alert('Online checkout isn\'t available yet — please call or text us to place your order:\n📞 437-879-8218');
   }
 
   function switchTab(btn, tabId) {
