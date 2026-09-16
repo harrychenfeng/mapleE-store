@@ -648,7 +648,7 @@
   </div>
   <div class="prod-grid">
     <!-- Featured -->
-    <div class="prod-card" onclick="addToCart()">
+    <div class="prod-card" onclick="location.href='product.html?id=chainsaw'">
       <div class="prod-badge">Best Seller</div>
       <div class="prod-img" style="font-size:1rem; padding:3rem 1rem;">
         <img src="chainsaw1.jpg" style="width: 100%; height: auto;">
@@ -667,20 +667,20 @@
       </div>
     </div>
     <!-- Card 2 -->
-    <div class="prod-card" onclick="addToCart()">
+    <div class="prod-card" onclick="location.href='product.html?id=blower'">
       <div class="prod-img"><img src="blower.jpg" style="width: 100%; height: auto;"></div>
       <div class="prod-info">
         <div class="prod-name">ME Air 3003 Cordless Leaf Blower</div>
         <div class="prod-spec">400 CFM | 5200 mAh re-chargeable Battery | 6 Adjustable-Wind-Speeds</div>
         <div class="prod-stars">★★★★☆ <span style="color:var(--gray)">(142 reviews)</span></div>
         <div class="prod-bottom">
-          <div><span class="prod-price">$85</span></div>
+          <div><span class="prod-price">$75</span><span class="prod-price-orig">$85</span></div>
           <button class="prod-add" onclick="event.stopPropagation();addToCart()">+</button>
         </div>
       </div>
     </div>
     <!-- Card 3 -->
-    <div class="prod-card" onclick="addToCart()">
+    <div class="prod-card" onclick="location.href='product.html?id=washer'">
       <div class="prod-badge" style="background:var(--green-neon);color:var(--black)">New</div>
       <div class="prod-img"><img src="washer.jpg" style="width: 100%; height: auto;"></div>
       <div class="prod-info">
@@ -688,12 +688,25 @@
         <div class="prod-spec">2 re-chargeable Batteries | Easy Use | 2 Nozzles | Foam Bottle</div>
         <div class="prod-stars">★★★★★ <span style="color:var(--gray)">(98 reviews)</span></div>
         <div class="prod-bottom">
-          <div><span class="prod-price">$65</span><span class="prod-price-orig">$83</span></div>
+          <div><span class="prod-price">$30</span><span class="prod-price-orig">$65</span></div>
           <button class="prod-add" onclick="event.stopPropagation();addToCart()">+</button>
         </div>
       </div>
     </div>
     <!-- Card 4 -->
+    <div class="prod-card" onclick="location.href='product.html?id=pruningshear'">
+      <div class="prod-img"><img src="pruningshear2.jpg" style="width: 100%; height: auto;"></div>
+      <div class="prod-info">
+        <div class="prod-name">ME Electric Pruning Shears</div>
+        <div class="prod-spec">SK5 Steel Blade | 21V 2.0Ah ×2 Batteries | Max 30mm Cutting</div>
+        <div class="prod-stars">★★★★★ <span style="color:var(--gray)">(0 reviews)</span></div>
+        <div class="prod-bottom">
+          <div><span class="prod-price">$30</span><span class="prod-price-orig">$65</span></div>
+          <button class="prod-add" onclick="event.stopPropagation();addToCart()">+</button>
+        </div>
+      </div>
+    </div>
+    <!-- Card 4b -->
     <!-- <div class="prod-card" onclick="addToCart()">
       <div class="prod-img">🌾</div>
       <div class="prod-info">
@@ -884,7 +897,7 @@
   }
 
   function toggleCart() {
-    alert(`You have ${cartItems} item(s) in your cart.\n\nConnect to Shopify or WooCommerce to enable real checkout.`);
+    alert(`You have ${cartItems} item(s) in your cart.\n\nOnline checkout is coming soon! In the meantime, please contact us to place an order.`);
   }
 
   function setFilter(btn) {
