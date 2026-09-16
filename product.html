@@ -320,6 +320,7 @@
       images: ["chainsaw1.jpg", "chainsaw2.jpg", "chainsaw3.jpg", "chainsaw4.jpg", "chainsaw5.jpg", "chainsaw6.jpg", "chainsaw7.jpg"],
       priceCurrent: 125,
       priceOrig: 149,
+      soldOut: true,
       rating: { stars: "★★★★★", num: "5.0", count: "286 reviews" },
       specs: [
         ["Motor Type", "Brushless"],
@@ -342,19 +343,23 @@
       name: "ME Air 3003 Cordless Leaf Blower",
       category: "Leaf Blowers",
       emoji: "💨",
-      images: ["blower.jpg"],
+      images: ["blower.jpg", "blower2.jpg", "blower3.jpg", "blower4.jpg", "blower5.jpg", "blower6.jpg"],
       priceCurrent: 75,
       priceOrig: 85,
       rating: { stars: "★★★★☆", num: "4.2", count: "142 reviews" },
       specs: [
-        ["Airflow", "400 CFM"],
-        ["Battery", "5200 mAh rechargeable"],
-        ["Wind Speeds", "6 adjustable settings"]
+        ["Battery", "21V 5.2Ah (included)"],
+        ["Max Speed", "Up to 20,000 RPM"],
+        ["Speed Settings", "6-speed adjustment"],
+        ["Nozzle", "Variable-section tube, 14.6in–26in / 37–66cm"],
+        ["Indicator", "Low-power warning light"],
+        ["In the Box", "Blower, battery, charger, user manual"]
       ],
       description: [
-        "The ME Air 3003 Cordless Leaf Blower delivers up to 400 CFM of airflow, powerful enough to clear leaves, grass clippings, and light debris from driveways, patios, and lawns.",
-        "A high-capacity 5200 mAh rechargeable battery keeps you working longer between charges, and 6 adjustable wind-speed settings let you match power to the job.",
-        "Lightweight and cordless, it's easy to maneuver around tight spaces without dragging a cable behind you."
+        "The ME Air 3003 Cordless Leaf Blower packs Turbo Technology into a compact frame — up to 20,000 RPM of airflow with 6-speed adjustment, so you can dial in the right power for the job, from delicate patio cleanup to heavy wet leaves.",
+        "A variable-section tube extends from 14.6in (37cm) up to 26in (66cm), giving you flexibility for different tasks and reach. A built-in low-power indicator lets you know when it's time to recharge.",
+        "Beyond leaf blowing, it's handy for sweeping snow, clearing wood chips and sawdust, blowing out engine bays, fanning a campfire, and even inflating air mattresses — one tool, a lot of jobs.",
+        "Powered by a 21V 5.2Ah rechargeable battery, it ships with the charger and a full user manual to get you started right away."
       ]
     },
     washer: {
@@ -431,15 +436,34 @@
     saveEl.textContent = 'Save ' + savePct + '% · Limited-time deal';
   }
 
+  if (p.soldOut) {
+    const addBtn = document.querySelector('.btn-add');
+    const buyBtn = document.querySelector('.btn-buy');
+    [addBtn, buyBtn].forEach(btn => {
+      btn.textContent = 'Sold Out';
+      btn.disabled = true;
+      btn.style.opacity = '0.4';
+      btn.style.cursor = 'not-allowed';
+      btn.onclick = null;
+    });
+    const stickyBtn = document.querySelector('.sticky-btn');
+    stickyBtn.textContent = 'Sold Out';
+    stickyBtn.disabled = true;
+    stickyBtn.style.opacity = '0.4';
+    stickyBtn.style.cursor = 'not-allowed';
+    stickyBtn.onclick = null;
+  }
+
   // Gallery: use real photos if available, otherwise an emoji placeholder
   const galleryImages = p.images && p.images.length ? p.images : [];
   const mainBox = document.getElementById('mainImgBox');
   const thumbsBox = document.getElementById('galleryThumbs');
 
   function renderMain(src) {
-    mainBox.innerHTML = src
+    const badge = p.soldOut ? '<div class="gallery-badge" style="background:#555;">Sold Out</div>' : '';
+    mainBox.innerHTML = badge + (src
       ? '<img src="' + src + '">'
-      : '<span class="emoji-fallback">' + p.emoji + '</span>';
+      : '<span class="emoji-fallback">' + p.emoji + '</span>');
   }
 
   if (galleryImages.length) {
